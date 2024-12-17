@@ -1,0 +1,35 @@
+version: '3.7'
+services:
+  nginx-proxy:
+    image: jwilder/nginx-proxy:latest
+    ports:
+      - "443:443"
+    volumes:
+      - /var/run/docker.sock:/tmp/docker.sock:ro
+      - /opt/services/certs:/etc/nginx/certs
+      - /etc/hosts:/etc/hosts
+      - /opt/services/conf/nginx.conf:/etc/nginx/nginx.conf
+    restart: unless-stopped
+    container_name: nginx-proxy
+    networks:
+      - services_net
+
+  speedtest:
+    container_name: speedtest
+    image: ghcr.io/librespeed/speedtest:latest
+    restart: always
+    volumes:
+      - /opt/services/db-dir:/database
+    environment:
+      MODE: standalone
+      TITLE: "SpeedTest"
+      TELEMETRY: "false"
+      ENABLE_ID_OBFUSCATION: "true"
+      DISABLE_IPINFO: "true"
+      WEBPORT: 8080
+    networks:
+      - services_net
+
+networks:
+  services_net:
+    driver: bridge
